@@ -1,3 +1,5 @@
+> **Disclaimer:** this is AI slop. It was built without a human ever touching the code. It works though.
+
 # Decent DE1 Card
 
 A Home Assistant dashboard card for the [Decent Espresso DE1](https://decentespresso.com/). The machine is a Cycles render of Decent's own published CAD model, with live data drawn onto it:
