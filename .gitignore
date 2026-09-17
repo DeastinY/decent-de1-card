@@ -1,0 +1,7 @@
+node_modules/
+render/final/
+render/*.STEP
+render/de1.json
+render/*.blend
+render/*.blend1
+__pycache__/
