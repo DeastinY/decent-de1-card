@@ -310,8 +310,13 @@ class DecentDe1Card extends HTMLElement {
       const prev = this._front;
       const next = (this._front = $(prev?.id === "water-a" ? "water-b" : "water-a"));
       next.src = `data:image/webp;base64,${ASSETS.levels[step]}`;
-      next.style.opacity = "1";
-      if (prev) prev.style.opacity = "0";
+      // Cross-fade only once the new level can actually be painted, otherwise the old
+      // one fades out over an image that has not decoded yet and the water blinks.
+      next.decode().catch(() => {}).then(() => {
+        if (this._front !== next) return; // a newer level overtook this one
+        next.style.opacity = "1";
+        if (prev) prev.style.opacity = "0";
+      });
     }
     $("water-pct").textContent = mm == null ? "—" : `${Math.round(pct * 100)}%`;
     $("water-callout").classList.toggle("low", mm != null && (isPct ? mm < (c.water_low_percent ?? 20) : mm < c.water_low_mm));
