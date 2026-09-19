@@ -5,7 +5,7 @@
 A Home Assistant dashboard card for the [Decent Espresso DE1](https://decentespresso.com/). The machine is a Cycles render of Decent's own published CAD model, with live data drawn onto it:
 
 - **Tablet screen** – machine state, group temperature, a heat bar and the loaded profile, mapped onto the tablet with the correct perspective. Blank while the machine sleeps.
-- **Water tank** – the base is rendered as smoked glass, and the water inside it follows the real tank level. The label turns red when water is low.
+- **Water tank** – the tank and the plinth shell wrapping it are rendered as clear glass, and the tank holds real liquid: a refractive volume that deepens in colour with its own depth, backlit so the waterline reads. It rises and falls with the tank level, crossfading between steps. The label turns red when water is low.
 - **Stats** – shots today, this week, this month and all time, plus the last shot, last cleaning, next cleaning and descale, if you have entities for them.
 
 ![Demo](images/demo.gif)
@@ -78,7 +78,7 @@ descale_due: sensor.descale_decent
 
 1. Download the official STEP file, [`DE1PROV14.STEP`](https://decentespresso.com/img/DE1PROV14.STEP) (listed on [decentespresso.com/overview](https://decentespresso.com/overview)), into `render/`.
 2. `npm install occt-import-js && node convert.mjs` tessellates it into `de1.json` with part names and face colours.
-3. `blender -b --python scene.py -- '{…}'` builds a studio scene with per-part materials and renders the machine once per water level (0–100 % in 10 % steps) with a transparent background. The full command is at the top of `scene.py`.
+3. `blender -b --python scene.py -- '{…}'` builds a studio scene with per-part materials and renders the machine once per water level (0–100 % in 10 % steps) with a transparent background. The full command, and the knobs that tune how the water reads, are at the top of `scene.py`.
 4. `python3 assets.py` crops the renders and keeps only the pixels that change with the water level. It also exports where the tablet screen and tank sit in the image, and writes `render/assets.json`.
 5. `python3 build.py` embeds the assets into `dist/decent-de1-card.js`.
 

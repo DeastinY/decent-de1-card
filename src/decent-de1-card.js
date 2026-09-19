@@ -1,7 +1,7 @@
 /*
  * decent-de1-card — Decent DE1 hero card.
  * The machine is a Cycles render of Decent's official DE1PRO CAD model. Live data is layered on top:
- * the tablet screen is a perspective-mapped HTML panel, the water in the base is swapped between
+ * the tablet screen is a perspective-mapped HTML panel, the water in the base crossfades between
  * pre-rendered levels. See README.md for configuration and render/ for how the images are made.
  */
 const ASSETS = __ASSETS__;
@@ -68,7 +68,7 @@ function quadMatrix(w, h, [x0, y0], [x1, y1], [x2, y2], [x3, y3]) {
 }
 
 const STYLE = `
-  :host { display: block; }
+  :host { display: block; --water: #2f86cc; }
   [hidden] { display: none !important; }
   ha-card { overflow: hidden; }
   .wrap { container-type: inline-size; }
@@ -84,6 +84,7 @@ const STYLE = `
   .machine { position: relative; width: 100%; max-width: 400px; margin: 0 auto; aspect-ratio: var(--ar); cursor: pointer; }
   .machine img { position: absolute; display: block; user-select: none; -webkit-user-drag: none; }
   .machine .base { inset: 0; width: 100%; height: 100%; }
+  .machine .water { opacity: 0; transition: opacity .7s ease; }
 
   .screen {
     position: absolute; left: 0; top: 0; width: 400px; height: 250px; transform-origin: 0 0;
@@ -113,7 +114,7 @@ const STYLE = `
   .callout b { font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .callout span { font-size: 11px; color: var(--secondary-text-color); }
   .callout .line { width: 26px; height: 1px; background: color-mix(in srgb, var(--primary-text-color) 30%, transparent); }
-  .callout .dot { width: 6px; height: 6px; border-radius: 50%; background: #3b9dff; box-shadow: 0 0 0 3px color-mix(in srgb, #3b9dff 25%, transparent); }
+  .callout .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--water); box-shadow: 0 0 0 3px color-mix(in srgb, var(--water) 25%, transparent); }
   .callout.low .dot { background: var(--error-color, #db4437); box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-color, #db4437) 25%, transparent); }
   .callout.low b { color: var(--error-color, #db4437); }
 
@@ -190,6 +191,7 @@ class DecentDe1Card extends HTMLElement {
     const A = ASSETS;
     const root = (this._root = this.attachShadow({ mode: "open" }));
     const wb = A.water_box;
+    const waterBox = `left:${wb[0] * 100}%;top:${wb[1] * 100}%;width:${wb[2] * 100}%;height:${wb[3] * 100}%`;
     root.innerHTML = `
       <style>${STYLE}</style>
       <ha-card><div class="wrap">
@@ -197,7 +199,8 @@ class DecentDe1Card extends HTMLElement {
           <div class="stage">
             <div class="machine" id="machine" data-entity="state" style="--ar:${A.w}/${A.h}">
               <img class="base" alt="Decent DE1" src="data:image/webp;base64,${A.base}">
-              <img id="water" alt="" style="left:${wb[0] * 100}%;top:${wb[1] * 100}%;width:${wb[2] * 100}%;height:${wb[3] * 100}%">
+              <img class="water" id="water-a" alt="" style="${waterBox}">
+              <img class="water" id="water-b" alt="" style="${waterBox}">
               <div class="screen" id="screen">
                 <div class="s-state" id="s-state"></div>
                 <div class="s-temp" id="s-temp"></div>
@@ -302,9 +305,14 @@ class DecentDe1Card extends HTMLElement {
     const isPct = ws?.attributes?.unit_of_measurement === "%";
     const pct = mm == null ? 0 : Math.max(0, Math.min(1, isPct ? mm / 100 : mm / c.water_full_mm));
     const step = Math.round(pct * 10) * 10;
-    const water = $("water");
-    const src = `data:image/webp;base64,${ASSETS.levels[step]}`;
-    if (water.dataset.step !== String(step)) { water.src = src; water.dataset.step = step; }
+    if (this._step !== step) {
+      this._step = step;
+      const prev = this._front;
+      const next = (this._front = $(prev?.id === "water-a" ? "water-b" : "water-a"));
+      next.src = `data:image/webp;base64,${ASSETS.levels[step]}`;
+      next.style.opacity = "1";
+      if (prev) prev.style.opacity = "0";
+    }
     $("water-pct").textContent = mm == null ? "—" : `${Math.round(pct * 100)}%`;
     $("water-callout").classList.toggle("low", mm != null && (isPct ? mm < (c.water_low_percent ?? 20) : mm < c.water_low_mm));
 
