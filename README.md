@@ -82,6 +82,12 @@ descale_due: sensor.descale_decent
 4. `python3 assets.py` crops the renders and keeps only the pixels that change with the water level. It also exports where the tablet screen and tank sit in the image, and writes `render/assets.json`.
 5. `python3 build.py` embeds the assets into `dist/decent-de1-card.js`.
 
+## How the images in this README are made
+
+`demo/demo.html` stands in for a Home Assistant dashboard: it stubs the two HA elements the card renders into, sets the theme variables the card reads, and drives it with a scripted fake `hass` — asleep, heating, a shot, then the tank running down and refilling. Open it in a browser and it loops.
+
+`python3 demo/capture.py` records that in headless Chromium over the DevTools protocol and writes `images/demo.gif` and the two screenshots; `capture.py gif`, `capture.py desktop` or `capture.py phone` does one of them. It needs `chromium`, `ffmpeg`, Pillow and `websockets`, and a network connection for the font.
+
 ## Credits
 
 The machine model comes from the CAD files [Decent Espresso publishes for free](https://decentespresso.com/blog/decent_espresso_cad_files). This project is not affiliated with or endorsed by Decent Espresso. "Decent" and "DE1" are their trademarks.
